@@ -33,7 +33,12 @@ async function run() {
     const classesCollection = client.db("summercamp").collection("classes");
     const cartCollection = client.db("summercamp").collection("carts");
 
+//     Classes
 
+app.get("/classes" , async(req,res) => {
+  const result = await classesCollection.find().toArray();
+  res.send(result)
+ })
 
 
 
