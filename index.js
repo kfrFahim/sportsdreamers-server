@@ -31,6 +31,8 @@ async function run() {
     // Send a ping to confirm a successful connection
 
     const classesCollection = client.db("summercamp").collection("classes");
+    const cartCollection = client.db("summercamp").collection("carts");
+
 
 
 
