@@ -60,7 +60,12 @@ app.get("/classes" , async(req,res) => {
     })
 
 
-    
+    app.post("/carts", async(req, res) => {
+      const item = req.body;
+      const result = await cartCollection.insertOne(item);
+      res.send(result);
+    })
+
 
 
     await client.db("admin").command({ ping: 1 });
