@@ -40,6 +40,27 @@ app.get("/classes" , async(req,res) => {
   res.send(result)
  })
 
+     //  Add to Cart
+
+     app.get("/carts" ,  async(req, res) => {
+      const email = req.query.email;
+      // console.log(email)
+      if(!email){
+        res.send([])
+      }
+      // todo verifyJWT,
+      // const decodedEmail = req.decoded.email;
+      // if(email !== decodedEmail){
+      //   return res.status(403).send({error:true, message: 'forbidden access'});
+      // }
+
+      const query = {email : email}
+      const result = await cartCollection.find(query).toArray()
+      res.send(result);
+    })
+
+
+    
 
 
     await client.db("admin").command({ ping: 1 });
