@@ -9,6 +9,23 @@ const jwt = require('jsonwebtoken');
 app.use(cors());
 app.use(express.json());
 
+const verifyJWT = (req, res, next) => {
+  const authorization = req.headers.authorization;
+  if (!authorization) {
+    return res.status(401).send({ error: true, message: 'unauthorized access' });
+  }
+  // bearer token
+  const token = authorization.split(' ')[1];
+
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, (err, decoded) => {
+    if (err) {
+      return res.status(401).send({ error: true, message: 'unauthorized access' })
+    }
+    req.decoded = decoded;
+    next();
+  })
+}
+
 // Mongodb
 
 const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
@@ -35,6 +52,17 @@ async function run() {
 
 
 
+    // JWT
+
+    app.post('/jwt', (req, res) => {
+      const user = req.body;
+      const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRET, { expiresIn: '1h' })
+
+      res.send({ token })
+    })
+
+
+
   // Users Api
 
   app.get("/users", async(req , res) => {
@@ -51,7 +79,7 @@ async function run() {
     }
     const result = await usersCollection.insertOne(user);
     res.send(result)
-  })
+  });
 
 
 // Get admit
