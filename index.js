@@ -3,6 +3,7 @@ const cors = require("cors");
 require("dotenv").config();
 const app = express();
 const port = process.env.PORT || 5000;
+const jwt = require('jsonwebtoken');
 
 // Middlewere
 app.use(cors());
@@ -65,6 +66,19 @@ app.patch("/users/admin/:id" , async(req, res)=>{
   const result = await usersCollection.updateOne(filter, updateDoc)  
   res.send(result)
 })
+
+// Make instructor
+app.patch("/users/instructor/:id" , async(req, res)=>{
+  const id = req.params.id;
+  const filter = {_id : new ObjectId(id)};
+  const updateDoc = {
+    $set: {
+      role: "instructor"
+    } }
+  const result = await usersCollection.updateOne(filter, updateDoc)  
+  res.send(result)
+})
+
 
 
 
