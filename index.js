@@ -52,6 +52,7 @@ async function run() {
     const instructorCollection = client.db("summercamp").collection("instructor");
     const myClassesCollection = client.db("summercamp").collection("myClasses");
     const cartCollection = client.db("summercamp").collection("carts");
+    const paymentCollection = client.db("summercamp").collection("payments");
 
 
 
@@ -151,7 +152,7 @@ app.patch("/users/instructor/:id" , async(req, res)=>{
       res.send(result);
     });
 
-    // get new item
+    // get new add item
 
     app.get("/newclasses", async (req, res) => {
       const result = await myClassesCollection.find().toArray();
@@ -162,6 +163,23 @@ app.patch("/users/instructor/:id" , async(req, res)=>{
       const newItem = req.body;
       const result = await myClassesCollection.insertOne(newItem);
       res.send(result) 
+    })
+
+    // Update approve deny
+
+    app.put("/newclasses/update-status/:id" ,async(req,res)=>{
+      const id= req.params.id;
+      const statusBody = req.body;
+      const filter = { _id : new ObjectId(id) };
+      // console.log(id , statusBody)
+    // this option instructs the method to create a document if no documents match the filter
+    // create a document that sets the plot of the movie
+    const updateDoc = {
+      $set: statusBody
+    };
+    const result = await myClassesCollection.updateOne(filter, updateDoc);
+    res.send(result)
+
     })
 
     // instructors
@@ -211,17 +229,18 @@ app.patch("/users/instructor/:id" , async(req, res)=>{
 
     // Create payment intent
 
-    app.post("/create-payment-intent", async(req, res)=> {
-      const {price} = req.body;
-      const amount = price*100;
-      const paymentIntent = stripe.paymentIntents.create({
+    app.post('/create-payment-intent', verifyJWT, async (req, res) => {
+      const { price } = req.body;
+      const amount = parseInt(price * 100);
+      const paymentIntent = await stripe.paymentIntents.create({
         amount: amount,
-        currency: "usd",
-        payment_method_types: ["card"],
-      })
-      res.send({
-        clientSecret: paymentIntent.client_secret,
+        currency: 'usd',
+        payment_method_types: ['card']
       });
+
+      res.send({
+        clientSecret: paymentIntent.client_secret
+      })
     })
 
 
