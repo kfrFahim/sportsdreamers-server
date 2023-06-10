@@ -1,6 +1,7 @@
 const express = require("express");
 const cors = require("cors");
 require("dotenv").config();
+const stripe = require('stripe')(process.env.PAYMENT_SECRET_KEY)
 const app = express();
 const port = process.env.PORT || 5000;
 const jwt = require('jsonwebtoken');
@@ -150,6 +151,13 @@ app.patch("/users/instructor/:id" , async(req, res)=>{
       res.send(result);
     });
 
+    // get new item
+
+    app.get("/newclasses", async (req, res) => {
+      const result = await myClassesCollection.find().toArray();
+      res.send(result);
+    });
+
     app.post("/newclasses" , async(req, res)=>{
       const newItem = req.body;
       const result = await myClassesCollection.insertOne(newItem);
@@ -199,6 +207,24 @@ app.patch("/users/instructor/:id" , async(req, res)=>{
       const result = await cartCollection.deleteOne(query);
       res.send(result);
     });
+
+
+    // Create payment intent
+
+    app.post("/create-payment-intent", async(req, res)=> {
+      const {price} = req.body;
+      const amount = price*100;
+      const paymentIntent = stripe.paymentIntents.create({
+        amount: amount,
+        currency: "usd",
+        payment_method_types: ["card"],
+      })
+      res.send({
+        clientSecret: paymentIntent.client_secret,
+      });
+    })
+
+
 
 
     await client.db("admin").command({ ping: 1 });
