@@ -48,6 +48,8 @@ async function run() {
 
     const usersCollection = client.db("summercamp").collection("users");
     const classesCollection = client.db("summercamp").collection("classes");
+    const instructorCollection = client.db("summercamp").collection("instructor");
+    const myClassesCollection = client.db("summercamp").collection("myClasses");
     const cartCollection = client.db("summercamp").collection("carts");
 
 
@@ -84,18 +86,51 @@ async function run() {
 
 // Get admit
 
+
+app.get('/users/admin/:email', verifyJWT, async (req, res) => {
+  const email = req.params.email;
+
+  if (req.decoded.email !== email) {
+    res.send({ admin: false })
+  }
+
+  const query = { email: email }
+  const user = await usersCollection.findOne(query);
+  const result = { admin: user?.role === 'admin' }
+  res.send(result);
+})
+
+
+
 app.patch("/users/admin/:id" , async(req, res)=>{
   const id = req.params.id;
   const filter = {_id : new ObjectId(id)};
   const updateDoc = {
     $set: {
       role: "admin"
+
     } }
   const result = await usersCollection.updateOne(filter, updateDoc)  
   res.send(result)
 })
 
 // Make instructor
+
+app.get('/users/instructor/:email', verifyJWT, async (req, res) => {
+  const email = req.params.email;
+
+  if (req.decoded.email !== email) {
+    res.send({ instructor: false })
+  }
+
+  const query = { email: email }
+  const user = await usersCollection.findOne(query);
+  const result = { instructor: user?.role === 'instructor' }
+  res.send(result);
+})
+
+
+
 app.patch("/users/instructor/:id" , async(req, res)=>{
   const id = req.params.id;
   const filter = {_id : new ObjectId(id)};
@@ -108,10 +143,6 @@ app.patch("/users/instructor/:id" , async(req, res)=>{
 })
 
 
-
-
-
-
     //     Classes
 
     app.get("/classes", async (req, res) => {
@@ -119,19 +150,35 @@ app.patch("/users/instructor/:id" , async(req, res)=>{
       res.send(result);
     });
 
+    app.post("/newclasses" , async(req, res)=>{
+      const newItem = req.body;
+      const result = await myClassesCollection.insertOne(newItem);
+      res.send(result) 
+    })
+
+    // instructors
+
+    app.get("/instructor", async (req, res) => {
+      const result = await instructorCollection.find().toArray();
+      res.send(result);
+    });
+
+ 
+
+
     //  Add to Cart
 
-    app.get("/carts", async (req, res) => {
+    app.get("/carts", verifyJWT, async (req, res) => {
       const email = req.query.email;
       // console.log(email)
       if (!email) {
         res.send([]);
       }
       // todo verifyJWT,
-      // const decodedEmail = req.decoded.email;
-      // if(email !== decodedEmail){
-      //   return res.status(403).send({error:true, message: 'forbidden access'});
-      // }
+      const decodedEmail = req.decoded.email;
+      if(email !== decodedEmail){
+        return res.status(403).send({error:true, message: 'forbidden access'});
+      }
 
       const query = { email: email };
       const result = await cartCollection.find(query).toArray();
@@ -172,3 +219,4 @@ app.get("/", (req, res) => {
 app.listen(port, () => {
   console.log(`SummerCamp server is running on port ${port}`);
 });
+
