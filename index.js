@@ -52,6 +52,7 @@ async function run() {
     // Send a ping to confirm a successful connection
 
     const usersCollection = client.db("summercamp").collection("users");
+    const reviewsCollection = client.db("summercamp").collection("reviews");
     const instructorCollection = client.db("summercamp").collection("instructor");
     const myClassesCollection = client.db("summercamp").collection("myClasses");
     const cartCollection = client.db("summercamp").collection("carts");
@@ -83,6 +84,14 @@ async function run() {
         return res.send({ message: "User Already exists" });
       }
       const result = await usersCollection.insertOne(user);
+      res.send(result);
+    });
+
+
+    // Reviews
+
+    app.get("/reviews", async (req, res) => {
+      const result = await reviewsCollection.find().toArray();
       res.send(result);
     });
 
@@ -157,12 +166,6 @@ async function run() {
 
     app.get("/newclasses", async (req, res) => {
       const result = await myClassesCollection.find().toArray();
-      res.send(result);
-    });
-
-    app.get("/newclasses/:email", async (req, res) => {
-      const email = req.params.email
-      const result = await myClassesCollection.find({email}).toArray();
       res.send(result);
     });
 
