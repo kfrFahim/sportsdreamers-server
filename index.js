@@ -69,7 +69,7 @@ async function run() {
 
   // Users Api
 
-  app.get("/users", async(req , res) => {
+  app.get("/users", verifyJWT, async(req , res) => {
     const result = await usersCollection.find().toArray();
     res.send(result)
   })
@@ -149,6 +149,7 @@ app.patch("/users/instructor/:id" , async(req, res)=>{
 
     app.get("/classes", async (req, res) => {
       const result = await classesCollection.find().toArray();
+
       res.send(result);
     });
 
@@ -242,6 +243,23 @@ app.patch("/users/instructor/:id" , async(req, res)=>{
         clientSecret: paymentIntent.client_secret
       })
     })
+
+        // payment related api
+        app.post('/payments', verifyJWT, async (req, res) => {
+          const payment = req.body;
+          const insertResult = await paymentCollection.insertOne(payment);
+    
+          const query = { _id: { $in: payment.cartItems.map(id => new ObjectId(id)) } }
+          const deleteResult = await cartCollection.deleteMany(query)
+    
+          res.send({ insertResult, deleteResult });
+        });
+
+      app.get("/payments", async (req, res) => {
+      const result = await paymentCollection.find().toArray();
+      res.send(result);
+    });
+
 
 
 
