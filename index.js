@@ -52,10 +52,7 @@ async function run() {
     // Send a ping to confirm a successful connection
 
     const usersCollection = client.db("summercamp").collection("users");
-    const classesCollection = client.db("summercamp").collection("classes");
-    const instructorCollection = client
-      .db("summercamp")
-      .collection("instructor");
+    const instructorCollection = client.db("summercamp").collection("instructor");
     const myClassesCollection = client.db("summercamp").collection("myClasses");
     const cartCollection = client.db("summercamp").collection("carts");
     const paymentCollection = client.db("summercamp").collection("payments");
@@ -73,7 +70,7 @@ async function run() {
 
     // Users Api
 
-    app.get("/users", verifyJWT, async (req, res) => {
+    app.get("/users", async (req, res) => {
       const result = await usersCollection.find().toArray();
       res.send(result);
     });
@@ -146,7 +143,7 @@ async function run() {
     //     Classes
 
     app.get("/classes", async (req, res) => {
-      const result = await classesCollection.find().toArray();
+      const result = await myClassesCollection.find().sort({ students: -1 }).toArray();
       res.send(result);
     });
 
@@ -163,6 +160,12 @@ async function run() {
       res.send(result);
     });
 
+    app.get("/newclasses/:email", async (req, res) => {
+      const email = req.params.email
+      const result = await myClassesCollection.find({email}).toArray();
+      res.send(result);
+    });
+
     app.post("/newclasses", async (req, res) => {
       const newItem = req.body;
       const result = await myClassesCollection.insertOne(newItem);
@@ -176,7 +179,7 @@ async function run() {
       const statusBody = req.body;
       const filter = { _id: new ObjectId(id) };
       const updateDoc = {
-        $set: statusBody,
+        $set: statusBody, 
       };
       const result = await myClassesCollection.updateOne(filter, updateDoc);
       res.send(result);
@@ -253,8 +256,9 @@ async function run() {
       res.send({ insertResult, deleteResult });
     });
 
-    app.get("/payments", async (req, res) => {
-      const result = await paymentCollection.find().toArray();
+    app.get("/payments/:email", async (req, res) => {
+      const email = req.params.email
+      const result = await paymentCollection.find({email}).toArray();
       res.send(result);
     });
 
